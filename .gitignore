@@ -1,0 +1,29 @@
+# secrets
+.env
+*.secret
+secrets.json
+*.pem
+*.key
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# editors / OS
+.vscode/
+.idea/
+.DS_Store
+
+# downloads, model weights and large data (figures/ is committed on purpose)
+data/downloads/
+*.pt
+*.pth
+*.onnx
+*.tflite
+*.zip
+*.tar.gz
