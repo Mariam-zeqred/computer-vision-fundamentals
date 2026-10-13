@@ -126,7 +126,7 @@ How to read the three panels:
 
 - **Gray histogram.** Two humps: a dark one near 10 to 20 (the shadows, the wood at the edges) and a broad one from 70 to 200 (saucer, lit wood, cup). 24.5 % of the pixels are below 64. A histogram piled up at the far left means under-exposure; piled up at 255 means clipping, and the detail in the highlights is gone for good. Checking the histogram of a camera stream once a minute is the cheapest "is the lens dirty / is the lamp off" monitor you can build.
 - **R, G, B histograms.** Red sits far to the right of the others: a colour cast. A camera's auto white balance works by shifting these back together.
-- **Hue histogram.** Only the first 40 of the 180 bins are shown, because everything else is empty: the scene is all warm colours. There are two peaks, one at H = 5 and one at H = 11 to 12, with a valley at H = 8. Two peaks mean two populations of pixels, and the valley between them is a threshold that has to come from *this* image's histogram, not from a textbook. The worked example uses exactly this.
+- **Hue histogram.** Only the first 40 of the 180 bins are shown, because the other 140 hold 0.9 % of the pixels (mostly the far end of red, near 179): the scene is all warm colours. There are two peaks, one at H = 5 and one at H = 11, with a valley at H = 8. Two peaks mean two populations of pixels, and the valley between them is a threshold that has to come from *this* image's histogram, not from a textbook. The worked example uses exactly this.
 
 A histogram also tells you how to fix contrast. A **percentile stretch** maps the 1st percentile to 0 and the 99th to 255, clipping the extremes:
 
@@ -152,9 +152,9 @@ It spreads the histogram to the full width and sacrifices the 2 % of pixels alre
 | wood (right) | 163.0 | 15.0 | 10.3 | 1.1 |
 | crema | 224.5 | 17.2 | 14.9 | 1.5 |
 
-Read the R column first: the saucer spans 47 to 119 and the wood spans 37 to 215. There is no red value that separates them, and no green or blue value either, because both are "red minus some green minus more blue" scaled by the lighting. The best RGB rule I could find by hand, `R > 130 and G < 90`, gives the middle panel: it loses the shaded bottom of the saucer and picks up the whole lit area of the table.
+Read the R column first: the saucer spans 47 to 119 and the wood spans 37 to 215. There is no red value that separates them, and no green or blue value either, because both are "red minus some green minus more blue" scaled by the lighting. The best RGB rule found by hand, `R > 130 and G < 90`, gives the middle panel: it loses the shaded bottom of the saucer and picks up the whole lit area of the table.
 
-Now the H column: every saucer patch is at 4 to 6, every wood patch at 10 to 14, and the spread within a wood patch is about 2. (The saucer's standard deviation of 15 to 18 is an artefact: a few dozen pixels per patch have hue 178 or 179, the other end of red, and the arithmetic treats them as 170 units away. Ignore those and the spread is 1 to 2. Exercise 3 fixes this properly.)
+Now the H column: every saucer patch is at 4 to 6, every wood patch at 10 to 14, and the spread within a wood patch is about 2. (The saucer's standard deviation of 15 to 18 is an artefact: a few dozen pixels per patch (21 and 30 of 3 000) have hue 177 to 179, the other end of red, and the arithmetic treats them as 170 units away. Ignore those and the spread is 2.3 and 1.3. Exercise 3 fixes this properly.)
 
 ![saucer](figures/lesson1/05_saucer_mask.png)
 
@@ -194,7 +194,7 @@ Two things are visibly wrong, and both are instructive. The lower half of the cu
 
 **4.** False alarms: at night with the lamps off the image is legitimately dark, so the rule fires every night; a correctly exposed scene with a large dark floor fires all day. A miss: a fogged lens gives a bright, flat image whose histogram is narrow but not at the left, so the rule never fires. More robust: compare with the histogram at the same time of day last week (or gate on the lamp schedule), alarm on histogram *width* (the 5th to 95th percentile range collapsing) as well as position, and require the condition for several consecutive frames.
 
-**5.** In theory neither touches H: both only rescale V, and converting back to RGB scales the three channels together. In practice the round trip through `uint8` RGB moves H by under half a unit on average, and pixels clipped to V = 0 or 255 lose their saturation. Measured on this image (the code is in `tests/` as a pattern you can copy): after the stretch the valley lands at 7 and the mask covers 34.9 %; after equalisation the valley is 8 and the mask covers 35.9 %; the original was 35.5 %. The stretch is a fixed linear map, so it is acceptable before a hue threshold; equalisation moves every pixel by a data-dependent amount, so frames stop being comparable, and it belongs in display code only.
+**5.** In theory neither touches H: both only rescale V, and converting back to RGB scales the three channels together. In practice the round trip through `uint8` RGB moves H by under half a unit on average, and pixels clipped to V = 0 or 255 lose their saturation. Measured on this image (`lesson1.py` prints these at the end of its run and `tests/` pins them): after the stretch the valley lands at 7 and the mask covers 34.9 %; after equalisation the valley is 8 and the mask covers 35.9 %; the original was 35.5 %. The stretch is a fixed linear map, so it is acceptable before a hue threshold; equalisation moves every pixel by a data-dependent amount, so frames stop being comparable, and it belongs in display code only.
 
 </details>
 
