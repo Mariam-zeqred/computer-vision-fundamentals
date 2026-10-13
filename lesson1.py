@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parent
 FIG_DIR = ROOT / "figures" / "lesson1"
 
 # Named patches (row slice, column slice) used to compare the saucer with the
-# table. Chosen by eye on data/coffee.png; see section 6 of the lesson.
+# table. Chosen by eye on data/coffee.png; see section 5 of the lesson.
 PATCHES: dict[str, tuple[slice, slice]] = {
     "saucer (left)": (slice(280, 330), slice(90, 150)),
     "saucer (bottom)": (slice(330, 360), slice(230, 330)),
@@ -268,6 +268,10 @@ def main(path: Path) -> None:
         " at (50, 50) wood =",
         hsv[50, 50],
     )
+    print(
+        "white cup reflecting the saucer: rgb[200, 230] =", rgb[200, 230], " hsv =", hsv[200, 230]
+    )
+    print("cup inner rim, near grey: hsv[60, 300] =", hsv[60, 300])
 
     print("\n== 4. histograms")
     hist = histogram(gray_manual)
@@ -277,16 +281,46 @@ def main(path: Path) -> None:
     print("gray: share of pixels below 64 =", f"{hist[:64].sum() / hist.sum():.1%}")
     valley = hue_valley(hsv[..., 0])
     print("hue histogram valley between the two peaks at H =", valley)
+    hue_counts = histogram(hsv[..., 0], 180)
+    peak_lo = int(np.argmax(hue_counts[:valley]))
+    peak_hi = valley + int(np.argmax(hue_counts[valley:40]))
+    print("hue peaks at H =", peak_lo, "and H =", peak_hi)
+    print(
+        "share of pixels with H >= 40 (bins not drawn) =",
+        f"{hue_counts[40:].sum() / hue_counts.sum():.1%}",
+    )
 
     print("\n== 5. worked example: saucer vs table")
     print(f"{'patch':20s} {'R mean':>7s} {'R sd':>6s} {'H mean':>7s} {'H sd':>5s}")
     for name, rm, rs, hm, hs in patch_table(rgb):
         print(f"{name:20s} {rm:7.1f} {rs:6.1f} {hm:7.1f} {hs:5.1f}")
+    for name, (r, c) in PATCHES.items():
+        if name.startswith("saucer"):
+            patch_hue = hsv[r, c, 0]
+            wrapped = patch_hue >= 170
+            print(
+                f"  {name}: {int(wrapped.sum())} of {patch_hue.size} pixels have H >= 170 "
+                f"(the other end of red); H sd without them = {patch_hue[~wrapped].std():.1f}"
+            )
     m_rgb = saucer_mask_rgb(rgb)
     m_hue = saucer_mask_hue(rgb, valley)
     print(f"RGB rule marks {m_rgb.mean():.1%} of pixels; hue rule marks {m_hue.mean():.1%}")
     for name, (r, c) in PATCHES.items():
         print(f"  hue rule inside {name:20s}: {m_hue[r, c].mean():6.1%} of the patch")
+
+    print("\n== exercise 5: stretch / equalise V, then threshold by hue again")
+    h, s, v = cv2.split(hsv)
+    for name, v2 in [
+        ("percentile stretch", percentile_stretch(v)),
+        ("equalizeHist", cv2.equalizeHist(v)),
+    ]:
+        back = cv2.cvtColor(cv2.merge([h, s, v2]), cv2.COLOR_HSV2RGB)
+        new_valley = hue_valley(to_hsv(back)[..., 0])
+        share = saucer_mask_hue(back, valley).mean()
+        print(
+            f"{name:18s} on V: valley at H = {new_valley}, "
+            f"mask (H <= {valley}, S >= 150) covers {share:.1%}"
+        )
 
     fig_channels(rgb)
     fig_hsv(rgb)

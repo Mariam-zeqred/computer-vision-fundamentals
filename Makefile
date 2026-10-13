@@ -5,8 +5,8 @@ PY ?= python3
 check: lint test lessons
 
 lint:
-	ruff check .
-	ruff format --check .
+	$(PY) -m ruff check .
+	$(PY) -m ruff format --check .
 
 test:
 	$(PY) -m pytest -q
