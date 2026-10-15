@@ -26,3 +26,16 @@ The audience is "can write Python, has never made a computer see anything". Six 
 3. *Why does the wrap-around matter?* Red straddles hue 0/179. Exercise 3 shows the saucer's hue standard deviation reading 15–18 because of a few pixels at 177–179 when the true spread is 2.3 and 1.3 (both printed by `lesson1.py`). Be ready to explain circular statistics in one sentence (average the unit vectors, not the angles).
 
 *One thing you could extend.* Add a `--valley-only` flag to `lesson1.py` that prints the valley for any image, then run it over a folder of poultry-house frames taken at different times of day and plot how the valley moves; that is a small, real experiment about lighting robustness that no textbook gives you.
+
+## Lesson 2 - Filtering, edges, morphology
+
+*What it teaches.* A kernel that sums to 1 averages, one that sums to 0 differentiates; compute in `float32`; only the median removes dead pixels, and every blur makes edges worse by a metric that looks at edges; Canny is thin + high threshold + hysteresis, and blur removes texture far better than a higher threshold; opening removes foreground narrower than the element, closing removes background narrower than it, neither touches what is wider.
+
+*The example.* Twelve eggs on a synthetic belt lit from the right, with dirt, noise and dead pixels. Global Otsu selects the lit half of the belt (7 blobs, one of 129 895 px); a 91 px white top-hat flattens the lighting, Otsu then gives 10 blobs because two pairs touch, and the distance transform's peaks give 12. `make_belt()` draws the frame from a fixed seed; README and `data/README.md` say it is not a photograph.
+
+*Questions a professor may ask.*
+1. *Why a top-hat and not adaptive thresholding?* Adaptive thresholding compares each pixel with its local mean and fails inside objects larger than its window. The top-hat states the size it assumes (foreground is narrower than 91 px) and leaves a grayscale image you can inspect before Otsu. Say you would try both on real footage; the top-hat's cost is one large opening per frame.
+2. *What does the synthetic score mean?* Nothing about real eggs. It is a correctness check against a known truth, and a way to exhibit failure modes (the 2980 px merged blob that an area rule misses). Lesson 6 is where real images get measured.
+3. *Why does the box filter beat the Gaussian on the whole frame?* At σ = 1 the Gaussian puts 40 % of its weight on the centre pixel and smooths less than a uniform 5 × 5; mean error over a mostly flat frame rewards smoothing. On the egg outlines the order reverses (21.7 vs 18.3). The metric chooses the winner, so name the metric first.
+
+*One thing you could extend.* Replace the 60 % peak rule with `cv2.watershed` seeded from the distance-transform peaks, give the eggs different sizes in `EGGS`, and show where the fixed fraction breaks and the watershed does not: one function, one figure.
