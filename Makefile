@@ -14,3 +14,4 @@ test:
 # Every lesson script must run from a clean checkout and rewrite its figures.
 lessons:
 	$(PY) lesson1.py
+	$(PY) lesson2.py
