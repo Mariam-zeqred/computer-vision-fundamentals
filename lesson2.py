@@ -86,7 +86,7 @@ def make_belt(seed: int = 7, shape: tuple[int, int] = (480, 640)) -> Belt:
         shade = 0.92 - 0.25 * ((u / a) ** 2 + (v / b) ** 2) - 0.05 * (u + v) / (a + b)
         refl[inside] = shade[inside]
         centres.append((r, c))
-    # Dirt specks: 40 small bright blobs of 1-3 px, the kind opening removes.
+    # Dirt specks: 40 small bright discs of radius 1-2 px (3-5 px across), the kind opening removes.
     for _ in range(40):
         r, c = rng.integers(0, h), rng.integers(0, w)
         cv2.circle(refl, (int(c), int(r)), int(rng.integers(1, 3)), 0.85, -1)
@@ -160,9 +160,10 @@ def box_kernel(k: int) -> np.ndarray:
 
 
 def convolve(img: np.ndarray, kernel: np.ndarray) -> np.ndarray:
-    """cv2.filter2D computes a correlation; for the symmetric kernels in this
-    lesson that is the same as a convolution. Output in float32 so negative
-    values (from derivative kernels) survive."""
+    """cv2.filter2D computes a correlation (no kernel flip): the same as a
+    convolution for symmetric kernels such as the box, and the sign-flipped
+    convolution for the antisymmetric Sobel kernel. Output in float32 so
+    negative values (from derivative kernels) survive."""
     return cv2.filter2D(img.astype(np.float32), cv2.CV_32F, kernel, borderType=cv2.BORDER_REFLECT)
 
 

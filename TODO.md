@@ -12,5 +12,5 @@
 
 - [ ] Lesson 2's egg counter has only been scored on the synthetic belt. If a real belt or shed photo with a hand count becomes available, add it to `data/` with its licence and report the count honestly, even if it is wrong.
 - [ ] The 60 % distance-transform rule is known to fail for uneven egg sizes or three eggs in a row (lesson 2, "What is fragile here"). A `cv2.watershed` version seeded from the peaks is the natural follow-up; WALKTHROUGH.md describes it.
-- [ ] Lesson 2 is about 3 030 words including exercises, answers and the reading list; the cap is 3 000. Trim ~50 words if the course's word-count rule counts those sections.
+- [ ] Lesson 2 is 3 233 words by `wc -w` (2 413 before the exercises); excluding code blocks, tables and image lines it is 2 847 (2 027 before the exercises). The cap is 3 000. Trim ~250 words if the course's word-count rule counts everything `wc -w` counts, nothing if it counts prose only.
 - [ ] `WALKTHROUGH.md` is ~960 words with two lessons; STYLE.md's 300–600 guideline was written for project repos. Decide whether a course walkthrough may grow per lesson (keep as is) or whether each lesson's notes move to `notes/lessonN.md` with WALKTHROUGH.md holding only the course-level part.

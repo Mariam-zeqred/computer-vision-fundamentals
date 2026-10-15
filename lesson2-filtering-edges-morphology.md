@@ -25,7 +25,7 @@ Two things did not change. The dark blob in the middle is the spoon's bowl, wide
 
 ## 2. Filtering: a kernel slides over the image
 
-A linear filter replaces each pixel by a weighted sum of its neighbourhood. The weights are a small array, the **kernel**; sliding it over the image and summing is **convolution** (OpenCV's `filter2D` computes correlation, which is identical for the symmetric kernels here).
+A linear filter replaces each pixel by a weighted sum of its neighbourhood. The weights are a small array, the **kernel**; sliding it over the image and summing is **convolution** (OpenCV's `filter2D` computes correlation, the same thing without flipping the kernel: identical for a symmetric kernel such as the box, and for the antisymmetric Sobel kernel of section 3 it only flips the sign, so "positive where the row brightens to the right" below is the correlation convention).
 
 ```python
 box = np.ones((5, 5), np.float32) / 25  # every entry 0.04, sums to 1
@@ -161,7 +161,7 @@ n_eggs = cv2.connectedComponentsWithStats(peaks)[0] - 1  # 12
 
 1. Apply the kernel `[1, −2, 1]` to the row `[10, 10, 10, 50, 50, 50]` with reflected borders. What does the result mark, and what does the kernel's sum tell you before you compute anything?
 2. On the toy shape of section 4, predict what "open then close" and "close then open" with the 5-pixel disc each do to the specks, the hole and the neck. Then say when the two orders give different results.
-3. The belt's dirt specks are up to 3 pixels across and the eggs are about 44 × 60 pixels. Why does section 5 open with 7 pixels rather than 3 or 45, and why not use erosion alone to remove the specks?
+3. The belt's dirt specks are 3 to 5 pixels across and the eggs are about 44 × 60 pixels. Why does section 5 open with 7 pixels rather than 3 or 45, and why not use erosion alone to remove the specks?
 4. The belt moves and the camera gives 10 frames a second. Counting every frame and summing overcounts each egg many times. Describe a counting scheme that counts each egg once, using nothing beyond this lesson plus the centroids that `connectedComponentsWithStats` returns.
 5. Using the Canny table of section 3: for the belt, where the eggs are 60 pixels across and the weave texture is 3 pixels wide, would you reach for σ = 2 or for thresholds of 100/200 to suppress the weave? What would each do to the egg outlines?
 
@@ -172,7 +172,7 @@ n_eggs = cv2.connectedComponentsWithStats(peaks)[0] - 1  # 12
 
 **2.** Open then close: opening deletes the specks and cuts the neck, closing refills the hole and, because the discs still touch, rejoins them: 1 827 pixels, one region, no hole (`lesson2.py` prints this). Close then open: closing fills the hole and keeps the specks, opening then deletes the specks and leaves the discs joined through the now-wider neck: also 1 827 pixels. They coincide because every feature here is far from every other. They differ when a speck lies within one element of the main region (closing first absorbs it; opening first deletes it) and when two regions are separated by a gap narrower than the element (closing first bridges it for good; opening first may widen it so no bridge forms).
 
-**3.** Opening removes foreground narrower than the element and leaves wider foreground unchanged, so the element must be wider than the widest speck and narrower than the narrowest egg. 3 pixels equals the largest speck and would leave some; 45 exceeds the eggs' 44-pixel width, and `lesson2.py` confirms that opening the toy with 45 pixels leaves 0 pixels on. 7 is safely between. Erosion alone would also delete the specks but would shrink every egg by a 3-pixel ring, changing every area and outline; opening restores the size, which is the whole reason it exists.
+**3.** Opening removes foreground narrower than the element and leaves wider foreground unchanged, so the element must be wider than the widest speck and narrower than the narrowest egg. 3 pixels equals the smallest speck and would leave the 5-pixel ones; 45 exceeds the eggs' 44-pixel width, and `lesson2.py` confirms that opening the toy with 45 pixels leaves 0 pixels on. 7 is safely between. Erosion alone would also delete the specks but would shrink every egg by a 3-pixel ring, changing every area and outline; opening restores the size, which is the whole reason it exists.
 
 **4.** Draw a counting line across the belt, perpendicular to travel. Each frame, compute the egg centroids as in section 5 and match each to the nearest centroid in the previous frame, within a distance set by the belt speed (at a known speed and 10 frames a second, an egg moves a fixed number of pixels per frame). Count a track once, when it crosses the line. Cases to handle: a track that vanishes before the line (merged with a neighbour) and reappears after it, and a dropped frame, which doubles the expected displacement.
 
