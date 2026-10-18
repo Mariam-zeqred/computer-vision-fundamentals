@@ -64,11 +64,21 @@ EGGS: list[tuple[int, int, int, int, int]] = [
 ]
 
 
-def make_belt(seed: int = 7, shape: tuple[int, int] = (480, 640)) -> Belt:
+def make_belt(
+    seed: int = 7,
+    shape: tuple[int, int] = (480, 640),
+    shift: int = 0,
+    noise_seed: int | None = None,
+) -> Belt:
     """Render a dark rubber belt with 12 cream-coloured eggs, lit more strongly on
     the right than on the left, with dirt specks, sensor noise and dead pixels.
 
     Everything here is invented; the point is a frame whose answer we know.
+
+    `shift` moves the belt (eggs, dirt and weave) `shift` pixels to the right
+    under the same stationary lamp, and `noise_seed` draws fresh sensor noise:
+    lesson 3 uses both to make a second frame of the same belt a moment later.
+    With the defaults the frame is identical to the committed data/belt_synthetic.png.
     """
     rng = np.random.default_rng(seed)
     h, w = shape
@@ -90,12 +100,16 @@ def make_belt(seed: int = 7, shape: tuple[int, int] = (480, 640)) -> Belt:
     for _ in range(40):
         r, c = rng.integers(0, h), rng.integers(0, w)
         cv2.circle(refl, (int(c), int(r)), int(rng.integers(1, 3)), 0.85, -1)
+    if shift:
+        refl = np.roll(refl, shift, axis=1)  # the belt moves, the lamp does not
+        centres = [(r, c + shift) for r, c in centres]
     # Illumination: a lamp on the right. Multiplicative, as real light is.
     light = np.linspace(0.30, 1.0, w, dtype=np.float32)[None, :]
     clean = np.clip(refl * light * 255.0, 0, 255)
     # Camera: Gaussian read noise, then 1 % dead or hot pixels.
-    noisy = clean + rng.normal(0.0, 9.0, clean.shape).astype(np.float32)
-    salt = rng.random(clean.shape)
+    noise_rng = rng if noise_seed is None else np.random.default_rng(noise_seed)
+    noisy = clean + noise_rng.normal(0.0, 9.0, clean.shape).astype(np.float32)
+    salt = noise_rng.random(clean.shape)
     noisy[salt < 0.005] = 0.0
     noisy[salt > 0.995] = 255.0
     gray = np.clip(noisy, 0, 255).astype(np.uint8)
