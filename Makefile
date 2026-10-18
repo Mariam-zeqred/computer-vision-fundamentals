@@ -15,3 +15,4 @@ test:
 lessons:
 	$(PY) lesson1.py
 	$(PY) lesson2.py
+	$(PY) lesson3.py
