@@ -22,3 +22,12 @@
 - [ ] ORB finds only 52 ratio matches / 31 inliers on the smooth synthetic belt. That is reported honestly; if a real belt photo pair arrives, re-run `travel_from_matches` and update the numbers either way.
 - [ ] `test_harris_matches_opencv_up_to_scale` compares the top-5 % corner sets of `harris_response` (Gaussian window) and `cv2.cornerHarris` (box window) and asks for 50 % overlap; it is a sanity check, not a pin. If OpenCV changes `cornerHarris` normalisation the threshold may need revisiting.
 - [ ] Exercise 5's tracker (`track_eggs`) is described in WALKTHROUGH.md and not implemented; it is the natural lesson-3 follow-up and does not need new data.
+
+## Open (lesson 4, 2026-10-21)
+
+- [ ] Lesson 4 is 3 520 words by `wc -w` (2 997 prose-only, excluding code blocks, tables and image lines; 2 181 before the exercises). Same policy question as lessons 2 and 3.
+- [ ] The CNN numbers (98.9 % validation, 95 % on labels, 10 of 12 at half size) come from one seed on CPU with PyTorch 2.14.1. Other PyTorch versions or thread counts may change the last-epoch number slightly; `tests/test_lesson4.py` pins ranges. If a test fails on a different machine, check whether the range or the training recipe should move.
+- [ ] `requirements.txt` lists `torch>=2.2`, which on Linux pulls the CUDA build (several GB). README points to the CPU wheel index; a `requirements-cpu.txt` or a `--extra-index-url` line would make `pip install -r` do the right thing by default.
+- [ ] The first-layer filters are rough (4 000 patches, 16 epochs, no weight decay). A run with weight decay or more data would give cleaner filters for figure 04; the lesson describes them as they are.
+- [ ] Labels and blobs are invented negatives placed by hand (`LABELS`, `BLOBS` in `lesson4.py`). A real belt frame with its own clutter would replace them; `data/README.md` is where its licence would go.
+- [ ] The scale test resizes with `INTER_AREA` down and `INTER_LINEAR` up; the "resized back" 12 of 12 at all three scales is for this frame only and the eggs are well separated except for the two touching pairs.

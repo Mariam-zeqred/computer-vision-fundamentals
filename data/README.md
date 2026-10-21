@@ -22,3 +22,8 @@ homography so the belt appears as a trapezoid seen from an angle. They exist so
 lesson 3's belt-travel measurement can be scored against a known answer. The
 camera, its markers and the travel are all invented; the files are rewritten on
 every run.
+
+Lesson 4 writes no files. Its 5 000 training and validation patches and the
+frame with three labels and two blobs are rendered in memory by `lesson4.py`
+(`make_patch_set()` and `lesson2.make_belt(decorate=lesson4.distractors)`) from
+fixed seeds, with the same rules as the belt above. They are synthetic too.
