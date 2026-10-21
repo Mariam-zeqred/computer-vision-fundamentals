@@ -3,3 +3,4 @@ opencv-python-headless>=4.8
 matplotlib>=3.8
 pytest>=7
 ruff>=0.4
+torch>=2.2

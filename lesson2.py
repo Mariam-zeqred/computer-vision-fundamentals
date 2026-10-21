@@ -69,6 +69,7 @@ def make_belt(
     shape: tuple[int, int] = (480, 640),
     shift: int = 0,
     noise_seed: int | None = None,
+    decorate: Callable[[np.ndarray, np.random.Generator], None] | None = None,
 ) -> Belt:
     """Render a dark rubber belt with 12 cream-coloured eggs, lit more strongly on
     the right than on the left, with dirt specks, sensor noise and dead pixels.
@@ -78,7 +79,10 @@ def make_belt(
     `shift` moves the belt (eggs, dirt and weave) `shift` pixels to the right
     under the same stationary lamp, and `noise_seed` draws fresh sensor noise:
     lesson 3 uses both to make a second frame of the same belt a moment later.
-    With the defaults the frame is identical to the committed data/belt_synthetic.png.
+    `decorate`, if given, is called with the reflectance map and the generator after
+    the dirt is drawn and before the belt moves, so a later lesson can put things on
+    the belt that are not eggs (lesson 4 adds labels and blobs). With the defaults
+    the frame is identical to the committed data/belt_synthetic.png.
     """
     rng = np.random.default_rng(seed)
     h, w = shape
@@ -100,6 +104,8 @@ def make_belt(
     for _ in range(40):
         r, c = rng.integers(0, h), rng.integers(0, w)
         cv2.circle(refl, (int(c), int(r)), int(rng.integers(1, 3)), 0.85, -1)
+    if decorate is not None:
+        decorate(refl, rng)
     if shift:
         refl = np.roll(refl, shift, axis=1)  # the belt moves, the lamp does not
         centres = [(r, c + shift) for r, c in centres]
