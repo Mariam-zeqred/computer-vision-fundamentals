@@ -27,3 +27,6 @@ data/downloads/
 *.tflite
 *.zip
 *.tar.gz
+
+# lesson 5 downloads Fashion-MNIST here (30 MB) and verifies the hashes
+data/fashion-mnist/

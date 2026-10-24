@@ -27,3 +27,18 @@ Lesson 4 writes no files. Its 5 000 training and validation patches and the
 frame with three labels and two blobs are rendered in memory by `lesson4.py`
 (`make_patch_set()` and `lesson2.make_belt(decorate=lesson4.distractors)`) from
 fixed seeds, with the same rules as the belt above. They are synthetic too.
+
+Lesson 5 uses **Fashion-MNIST** (Zalando Research, 2017; Han Xiao, Kashif Rasul
+and Roland Vollgraf, "Fashion-MNIST: a Novel Image Dataset for Benchmarking
+Machine Learning Algorithms", arXiv:1708.07747), released under the MIT licence:
+70 000 real 28 × 28 grayscale photographs of clothing in ten classes, 60 000 for
+training and 10 000 that the authors hold out as the test set. The four gzipped
+IDX files (30 MB) are **not committed**; `lesson5.py` downloads them from the
+dataset's GitHub repository
+(`https://raw.githubusercontent.com/zalandoresearch/fashion-mnist/master/data/fashion/`)
+into `data/fashion-mnist/` (gitignored) and refuses to read a file whose SHA-256
+does not match the hash recorded in `lesson5.FILES`; those hashes were taken
+from the files on 2026-10-24 and agree with the MD5 checksums the dataset's
+README publishes. CIFAR-10, which the course plan named, was not reachable from
+the machine the lesson was written on; Fashion-MNIST has a clear licence, is
+small, and has the kind of confusable classes a confusion matrix is for.
