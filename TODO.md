@@ -31,3 +31,12 @@
 - [ ] The first-layer filters are rough (4 000 patches, 16 epochs, no weight decay). A run with weight decay or more data would give cleaner filters for figure 04; the lesson describes them as they are.
 - [ ] Labels and blobs are invented negatives placed by hand (`LABELS`, `BLOBS` in `lesson4.py`). A real belt frame with its own clutter would replace them; `data/README.md` is where its licence would go.
 - [ ] The scale test resizes with `INTER_AREA` down and `INTER_LINEAR` up; the "resized back" 12 of 12 at all three scales is for this frame only and the eggs are well separated except for the two touching pairs.
+
+## Open (lesson 5, 2026-10-24)
+
+- [ ] Lesson 5 is about 3 400 words by `wc -w` and under 3 000 prose-only (excluding code blocks, tables and image lines). Same policy question as lessons 2-4.
+- [ ] The full-data run (54 000 images, 10 epochs) was done with one seed because it takes about 90 s; the test accuracy therefore has an unmeasured seed spread (the subsets' spreads are 0.7 and 1.4 points). Three seeds would take under five minutes and would let the lesson quote a range on the test number too.
+- [ ] Augmentation was measured only at fixed budgets (40 epochs on 1 000 images, 8 on 10 000). A longer run on 10 000 images (where the un-augmented network has not yet overfitted at 8 epochs) would show whether the shift's regularisation pays there; WALKTHROUGH.md describes the full-scale version.
+- [ ] `lesson5.py` takes about 7-8 minutes on four CPU cores, most of it the three-seed tables; `make check` and CI now take correspondingly longer. If this is too slow, `SEEDS` and `EPOCHS_BY_SIZE` are the knobs, and the tests pin only what a shorter run keeps.
+- [ ] CIFAR-10 and the agricultural sets the course plan mentions were unreachable from the sandbox; Fashion-MNIST was chosen for its licence and size. If a small agricultural set with a clear licence becomes available, lesson 5's protocol runs on it unchanged (`load_fashion_mnist` is the only dataset-specific function), and `data/README.md` is where its licence would go.
+- [ ] `data/fashion-mnist/` is downloaded, not committed (30 MB, gitignored); CI downloads it on every run from raw.githubusercontent.com. If that host rate-limits or the repository moves, `BASE_URL` in `lesson5.py` is the one line to change, and the hashes make a mirror safe to use.
