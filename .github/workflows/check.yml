@@ -13,6 +13,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
       # CPU-only PyTorch first: the default Linux wheel pulls several GB of CUDA libraries
       # that the course never uses (see README "Running the lessons").
-      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
       - run: pip install -r requirements.txt
       - run: make check

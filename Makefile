@@ -18,3 +18,4 @@ lessons:
 	$(PY) lesson3.py
 	$(PY) lesson4.py
 	$(PY) lesson5.py
+	$(PY) lesson6.py

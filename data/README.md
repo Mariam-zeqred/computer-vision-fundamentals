@@ -42,3 +42,18 @@ from the files on 2026-10-24 and agree with the MD5 checksums the dataset's
 README publishes. CIFAR-10, which the course plan named, was not reachable from
 the machine the lesson was written on; Fashion-MNIST has a clear licence, is
 small, and has the kind of confusable classes a confusion matrix is for.
+
+Lesson 6 renders eighty belt frames into `data/eggs-synthetic/` (gitignored,
+24 MB, rewritten on every run): `lesson6.make_scene(seed)` places 2-12 eggs of
+random size and angle on lesson 2's belt with lesson 4's labels and blobs, dirt, a
+lamp of random strength and direction, read noise and dead pixels, and the box
+around each egg follows from the ellipse it was drawn with. Seeds 1000-1049 are
+the training frames, 2000-2009 validation, 3000-3019 test. They are **synthetic**;
+the labels cost nothing, which is the point of using them to teach the protocol,
+and the lesson says what changes on real photographs. The detector's starting
+weights, **YOLOv8n trained on COCO** by Ultralytics (AGPL-3.0, see the lesson's
+deployment section), are downloaded once from the Ultralytics GitHub release
+(`https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8n.pt`,
+6.5 MB) into `data/downloads/` (gitignored) and refused unless their SHA-256
+matches `lesson6.WEIGHTS_SHA256`, recorded from the file on 2026-10-28. Training
+runs and ONNX exports go under `data/downloads/lesson6-runs/` and are not committed.

@@ -30,3 +30,7 @@ data/downloads/
 
 # lesson 5 downloads Fashion-MNIST here (30 MB) and verifies the hashes
 data/fashion-mnist/
+
+# lesson 6 renders its 80 belt frames here (24 MB) and rewrites them on every run;
+# the COCO weights, training runs and ONNX exports go under data/downloads/
+data/eggs-synthetic/
