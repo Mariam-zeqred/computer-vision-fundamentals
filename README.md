@@ -1,6 +1,6 @@
 # Computer Vision Fundamentals
 
-A six-lesson, hands-on course: NumPy and OpenCV first, PyTorch from lesson 4. Each lesson is a Markdown chapter of 1 500–3 000 words with one worked example, 3–5 exercises (answers collapsed), Mermaid diagrams where a picture helps and a "What to read next" list. Every piece of code a lesson shows is in a runnable `lessonN.py` that prints the numbers the text quotes and writes the figures the text embeds, so nothing in the prose is unverifiable.
+A six-lesson, hands-on course: NumPy and OpenCV first, PyTorch from lesson 4, a pre-trained detector in lesson 6. All six lessons are written. Each lesson is a Markdown chapter of 1 500–3 000 words with one worked example, 3–5 exercises (answers collapsed), Mermaid diagrams where a picture helps and a "What to read next" list. Every piece of code a lesson shows is in a runnable `lessonN.py` that prints the numbers the text quotes and writes the figures the text embeds, so nothing in the prose is unverifiable.
 
 The examples lean towards agriculture (eggs on a belt, birds in a shed, leaves in a field) because that is where the author's other repositories live, but nothing depends on it.
 
@@ -13,7 +13,7 @@ The examples lean towards agriculture (eggs on a belt, birds in a shed, leaves i
 | 3 | [Features and matching, homography](lesson3-features-matching-homography.md) | The structure tensor and why corners are findable; ORB and SIFT scored for repeatability against a known warp; nearest-neighbour matching, the ratio test and cross-check; four-point DLT, least squares and RANSAC compared by transfer error; an oblique camera over the belt, rectified from four markers, and the belt's travel read in millimetres from matched features. |
 | 4 | [Classical detection to CNNs](lesson4-classical-detection-to-cnns.md) | A mean-egg template with normalised cross-correlation and non-maximum suppression; a 3 × 3 kernel learned by gradient descent until it is Sobel, fast on noise and slow on a photograph (and why); one learned 64 × 64 filter and what it can never separate; a 6 129-parameter CNN whose first-layer filters sort into blurs and derivatives; the same network run fully convolutionally over a frame, scored against labels, blobs and a change of scale. |
 | 5 | [Training a small classifier properly](lesson5-training-a-small-classifier.md) | Three sets with three jobs, cut once and stratified; early stopping by the validation set and why the loss overfits before the accuracy; augmentation as a claim about the test set, measured on Fashion-MNIST (a 2-pixel shift removes the overfitting, not the errors, and costs 3 points at a fixed budget); seeds and the width of a number; the augment-then-split leak (4.6 points of flattery); a 20 490-parameter CNN trained on 54 000 real images and scored once on the test set, 90.1 %, with the confusion matrix showing that 634 of its 994 errors are between four upper-body garments. |
-| 6 | Object detection with a pre-trained model | *(not yet written)* fine-tuning on 50 images, mAP, edge deployment. |
+| 6 | [Object detection with a pre-trained model](lesson6-object-detection.md) | COCO-trained YOLOv8n out of the box (a cup on the coffee photo; "sports balls" on the belt); fifty synthetic belt frames with free boxes, split by frame; fine-tuning against training from scratch at the same budget (99.5 % against 65.5 % validation AP50 in 20 epochs); average precision written out in NumPy and checked against the library's (100.0 % against 99.5 %, and why they differ); the operating point chosen from the middle of a validation plateau; every egg found on lessons 2-4's frames including the half-size and oblique ones; ONNX export with a hand-written letterbox, decode and NMS, and a latency table at three input sizes (77, 19 and 5 ms per frame on one thread; the AP collapses at 160 px). |
 
 ## Running the lessons
 
@@ -26,15 +26,17 @@ python lesson2.py                 # imports lesson1.py; run from the repo root
 python lesson3.py                 # imports lesson1.py and lesson2.py
 python lesson4.py                 # trains on the CPU, about 30 s
 python lesson5.py                 # downloads Fashion-MNIST (30 MB) once, then about 7 min on 4 cores
-make check                        # ruff + pytest + every lesson script
+python lesson6.py                 # downloads yolov8n.pt (6.5 MB) once, then about 6.5 min on 4 cores
+make check                        # ruff + pytest + every lesson script, about 13 min
 ```
 
-Python 3.11 or newer. OpenCV is the headless build, so nothing opens a window; look at the PNGs in `figures/`. Lessons 4 and 5 need PyTorch; `requirements.txt` pulls the default build, and on Linux the CPU-only build (`pip install torch --index-url https://download.pytorch.org/whl/cpu`) is a much smaller download and all the course uses.
+Python 3.11 or newer. OpenCV is the headless build, so nothing opens a window; look at the PNGs in `figures/`. Lessons 4 to 6 need PyTorch; `requirements.txt` pulls the default build, and on Linux the CPU-only build (`pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu`, before `requirements.txt`) is a much smaller download and all the course uses. Lesson 6 also needs `ultralytics` (AGPL-3.0; see the lesson's deployment section), `onnx` and `onnxruntime`, all in `requirements.txt`.
 
 ```mermaid
 flowchart LR
     D[data/coffee.png] --> L[lessonN.py]
     FM[Fashion-MNIST, downloaded] --> L
+    W[yolov8n.pt, downloaded] --> L
     L --> F[figures/lessonN/*.png]
     L --> T[numbers printed to stdout]
     F --> M[lessonN-*.md embeds them]
@@ -64,6 +66,10 @@ flowchart LR
 
 ![confusion](figures/lesson5/05_confusion.png)
 
+`python lesson6.py` prints the weight download and hash check, what the COCO model calls the coffee photo (cup 0.92, dining table 0.72) and the belt (eight sports balls and an orange above 0.25, twelve boxes above 0.05), the sizes of the three splits (50, 10 and 20 frames; 360, 64 and 117 eggs), the per-epoch validation AP50 of the fine-tuned and the from-scratch run with their best epochs (99.5 % at 17; 65.5 % at 20), the test-set AP50 and AP50-95 by the script's own computation and by the library (100.0 / 99.5 % and 96.5 / 95.9 % fine-tuned; 64.6 / 64.8 % and 27.0 / 27.7 % from scratch) with the AP at each IoU threshold, the threshold sweep on the validation frames and the chosen operating point (0.30; test precision and recall 100 %), the detector's count on each of lessons 2-4's frames (12 of 12 on all six, one false alarm on each oblique view), and the ONNX table (640 / 320 / 160 px: 12.7 MB, AP50 100.0 / 99.6 / 58.5 %, 77 / 19 / 5 ms per frame on one thread). The last figure:
+
+![frames](figures/lesson6/05_frames.png)
+
 ## Repository layout
 
 | Path | What it is |
@@ -72,12 +78,12 @@ flowchart LR
 | `lessonN.py` | the runnable code for that lesson, importable by later lessons and by the tests |
 | `tests/test_lessonN.py` | pins the quoted numbers so a library change breaks a test before it misleads a reader |
 | `figures/lessonN/` | the PNGs the lesson embeds, regenerated by the script and committed |
-| `data/` | images with their source and licence in `data/README.md`; the synthetic belt frames are rewritten by the lesson scripts; `data/fashion-mnist/` is downloaded by lesson 5 and not committed |
+| `data/` | images with their source and licence in `data/README.md`; the synthetic belt frames are rewritten by the lesson scripts; `data/fashion-mnist/` is downloaded by lesson 5, `data/eggs-synthetic/` rendered by lesson 6 and `data/downloads/` (COCO weights, training runs, ONNX exports) written by lesson 6; none of the three is committed |
 | `WALKTHROUGH.md` | notes for the author on each lesson's design and likely questions |
 
 ## Data
 
-`data/coffee.png` is the CC0 "coffee" sample image distributed with scikit-image, copied into the repo so the lessons need no download. `data/belt_synthetic.png` is **not a photograph**: lesson 2 draws it from a fixed seed so the egg count is known, and rewrites it on every run. `data/belt_oblique_t0.png` and `_t1.png` are the same belt seen through a fictional oblique camera in two frames 37 mm of travel apart, written by lesson 3. Provenance and licences are in [`data/README.md`](data/README.md). Lesson 5 downloads **Fashion-MNIST** (Zalando Research, MIT licence; 70 000 real 28 × 28 photographs of clothing in ten classes) into `data/fashion-mnist/`, which is gitignored, and checks the four files against SHA-256 hashes recorded in `lesson5.py` before reading them. Its licence and provenance are in `data/README.md` too.
+`data/coffee.png` is the CC0 "coffee" sample image distributed with scikit-image, copied into the repo so the lessons need no download. `data/belt_synthetic.png` is **not a photograph**: lesson 2 draws it from a fixed seed so the egg count is known, and rewrites it on every run. `data/belt_oblique_t0.png` and `_t1.png` are the same belt seen through a fictional oblique camera in two frames 37 mm of travel apart, written by lesson 3. Provenance and licences are in [`data/README.md`](data/README.md). Lesson 5 downloads **Fashion-MNIST** (Zalando Research, MIT licence; 70 000 real 28 × 28 photographs of clothing in ten classes) into `data/fashion-mnist/`, which is gitignored, and checks the four files against SHA-256 hashes recorded in `lesson5.py` before reading them. Its licence and provenance are in `data/README.md` too. Lesson 6 renders eighty **synthetic** belt frames with 2-12 eggs each into `data/eggs-synthetic/` (gitignored, rewritten on every run) and downloads the COCO-trained **YOLOv8n** weights from the Ultralytics GitHub release into `data/downloads/` (gitignored), refusing them unless their SHA-256 matches the one in `lesson6.py`; the weights and the library are AGPL-3.0, which the lesson discusses.
 
 ## Limitations
 
@@ -86,6 +92,7 @@ flowchart LR
 - Lesson 3's feature numbers come from one photograph warped by a chosen homography and from the synthetic belt. The SIFT repeatability of 45.5 % is what a 3-pixel test gives on this image at a 0.85 shrink with dimming; it is not a general ranking of SIFT against ORB. On the belt ORB finds only 31 inlier matches, because the scene is smooth; the lesson says so rather than tuning the scene until the number looks better. The oblique camera and its four markers are placed by the script, not measured.
 - Lesson 4's detectors are trained and scored on patches and frames rendered by the same generator, so its 98.9 % says the network learned the generator, not eggs. The labels and blobs are invented negatives. One seed, no augmentation and 4 000 patches make the validation curve noisy and the first-layer filters rough; the tests pin ranges, not digits, and a different PyTorch version may move the last-epoch number.
 - Lesson 5's numbers are one validation split and, for the full-data run, one seed; the subsets' seed spreads (0.7 to 2.5 points) say how far a repeat may move them, and the test accuracy of 90.1 % is far below what Fashion-MNIST supports, because the network and the budget were kept small enough to run in minutes on a CPU. Augmentation did not help at these budgets on this centred data set, and the lesson says so and why, rather than tuning until it did.
+- Lesson 6's 100 % AP50 is on test frames from the same generator as its training frames, so it says the protocol works, not that eggs are solved; the from-scratch detector was trained once, with one seed, and its 65.5 % would move with another. The dips in the fine-tuning curve (validation AP near zero at epochs 2, 4, 10 and 11) are reported, not explained. The latency table is this sandbox's CPU; the ONNX files are float32 and no quantisation was tried.
 - The sandbox the course is written in cannot reach most image hosts, so lessons use images bundled with Python packages, generated by code in the repo, or (lesson 5) downloaded from a GitHub-hosted data set with a clear licence and a hash check; CIFAR-10 was not reachable.
 - No notebooks yet; the `.py` scripts are the reference. Notebooks, if added, will have outputs cleared and will not be the only copy of any code.
 
@@ -95,7 +102,7 @@ flowchart LR
 - Lesson 5's protocol runs unchanged on any small labelled image set; a real agricultural one (leaf diseases, egg grades) with a clear licence would make it the course's first real-data agricultural result, with `data/README.md` holding the licence.
 - Lesson 4's `EggNet` is trained on one scale and run on a pyramid by hand; a version with a third pool and a scale-augmented patch set would show how far augmentation can replace the pyramid.
 - Lesson 3's belt-travel pipeline is the natural front end for the counting-line tracker that lesson 2's exercise 4 and lesson 3's exercise 5 describe; a `track_eggs()` over a sequence of frames from `make_belt(shift=...)` would make it code.
-- Lesson 6's detector is meant to replace lesson 2's egg counter on real images, which is where the counter's limitations become measurable rather than listed.
+- Lesson 6's detector finds every egg on every synthetic frame; fifty real belt or shed photographs with hand-drawn boxes would make its number mean something, and `make_scene()` is the only function that would be replaced. Its exercise 4 (why the validation AP dips during fine-tuning) and the 8-bit quantisation of the ONNX export are the two follow-ups that need no new data.
 - A real belt or shed photograph with a hand-counted answer would let lesson 2's pipeline be scored on something that is not synthetic; `data/README.md` is where its licence would go.
 - Notebooks remain optional. If added, each will be generated from its `lessonN.py` so the script stays the single source of the code.
 
